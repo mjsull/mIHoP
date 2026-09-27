@@ -26,7 +26,7 @@ classifiers = [
 dependencies = [
   "pandas",
   "snakemake>=9.1",
-  "snk-cli @git+https://github.com/bakeronit/snk-cli.git@b610060"
+  "snk-cli>=0.8.0",
 ]
 
 [project.urls]
@@ -39,9 +39,6 @@ mihop = "mihop.cli:mihop"
 
 [tool.hatch.version]
 path = "src/mihop/__about__.py"
-
-[tool.hatch.metadata]
-allow-direct-references = true
 
 [tool.hatch.envs.types]
 extra-dependencies = [

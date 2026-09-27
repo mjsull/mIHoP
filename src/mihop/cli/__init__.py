@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
+import re
 from pathlib import Path
 
 import typer
@@ -49,7 +50,7 @@ def download(
     directory_path = Path(directory)
     directory_path.mkdir(parents=True, exist_ok=True)
 
-    label_column = Column(width=20, no_wrap=True)
+    label_column = Column(width=15, no_wrap=True)
     overall_progress = Progress(
         TextColumn("[bold]{task.description}", justify="right", table_column=label_column),
         BarColumn(),
@@ -132,8 +133,16 @@ def download(
         for future in [pool.submit(download_one, file) for file in files]:
             future.result()
 
+ILLUMINA_READ_PATTERN = re.compile(
+    r"^(?P<sample>.+)_S\d+(?:_L\d+)?_R(?P<read>[12])(?:_\d+)?\.(?:fastq|fq)(?:\.gz)?$",
+    re.IGNORECASE,
+)
+
 @mihop.app.command()
-def prepare(fastq_dir: str, output: str = "samples.csv") -> Path:
+def prepare(
+    fastq_dir: str, 
+    output: str = typer.Option("samples.csv", "--output", "-o")
+) -> Path:
     """
     Generate a samplesheet from FASTQ files found in `fastq_dir`.
     """
@@ -144,19 +153,24 @@ def prepare(fastq_dir: str, output: str = "samples.csv") -> Path:
     suffixes = (".fastq.gz", ".fq.gz", ".fastq", ".fq")
     sep = "\t" if output_path.suffix.lower() == ".tsv" else ","
 
-    samples: dict[str, list[Path]] = {}
+    samples: dict[str, dict[str, Path]] = {}
     for path in fastq_dir_path.rglob("*"):
-        name = path.name.lower()
-        if name.endswith(suffixes) and not name.startswith("undetermined") and path.is_file():
-            samples.setdefault(path.name.split("_", 1)[0], []).append(path)
+        lower = path.name.lower()
+        suffix = next((s for s in suffixes if lower.endswith(s)), None)
+        if not path.is_file() or not suffix or lower.startswith("undetermined"):
+            continue
+
+        match = ILLUMINA_READ_PATTERN.match(path.name)
+        sample, read = (match["sample"], match["read"]) if match else (path.name[: -len(suffix)], "1")
+
+        reads = samples.setdefault(sample, {})
+        if read in reads:
+            raise ValueError(f"Multiple R{read} FASTQs found for sample {sample!r}: {reads[read]} and {path}")
+        reads[read] = path
 
     with output_path.open("w", newline="") as out:
         out.write(sep.join(("sample", "fastq_1", "fastq_2")) + "\n")
         for sample, reads in sorted(samples.items()):
-            reads = sorted(map(str, reads))
-            if len(reads) > 2:
-                raise ValueError(f"Expected at most two FASTQs for {sample!r}, found: {reads}")
-            r1, r2, *_ = *reads, "", ""
-            out.write(sep.join((sample, r1, r2)) + "\n")
+            out.write(sep.join((sample, str(reads.get("1", "")), str(reads.get("2", "")))) + "\n")
 
     return output_path

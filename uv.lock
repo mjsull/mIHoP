@@ -525,7 +525,7 @@ dependencies = [
 requires-dist = [
     { name = "pandas" },
     { name = "snakemake", specifier = ">=9.1" },
-    { name = "snk-cli", git = "https://github.com/bakeronit/snk-cli.git?rev=b610060" },
+    { name = "snk-cli", specifier = ">=0.8.0" },
 ]
 
 [[package]]
@@ -1281,8 +1281,8 @@ wheels = [
 
 [[package]]
 name = "snk-cli"
-version = "0.7.2"
-source = { git = "https://github.com/bakeronit/snk-cli.git?rev=b610060#b610060257a767c0555cdb86b4a3716e8779ccd1" }
+version = "0.8.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "art" },
     { name = "makefun" },
@@ -1291,6 +1291,10 @@ dependencies = [
     { name = "shellingham" },
     { name = "snakemake" },
     { name = "typer" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e9/f2/33fc4a71036c04eefd18f4c03b33eb2a99660e2f485ae9e0e1c06438f59a/snk_cli-0.8.0.tar.gz", hash = "sha256:6618d653e6f6e69e945ed9fc0eb35ebb220feec54cf194ff0a972b1656e29c6b", size = 61951, upload-time = "2026-06-29T03:29:48.551Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2c/dd/b4f4ea4c2dc4add4202f472381c15aca79b00ad66dea89f4123ae1da4faa/snk_cli-0.8.0-py3-none-any.whl", hash = "sha256:3721348778a374e166c2c4c4a33e2d6cacc81712b9a9236a3f654f0f840a9e02", size = 32262, upload-time = "2026-06-29T03:29:49.513Z" },
 ]
 
 [[package]]
